@@ -1,17 +1,27 @@
 @HostAddress = http://localhost:5225
 @Version = v1
 
+### login
+POST {{HostAddress}}/api/{{Version}}/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "admin",
+  "password": "password"
+}
+
 ### Get all skills
 GET {{HostAddress}}/api/{{Version}}/getskills
 Accept: application/json
-
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6IkFkbWluIiwibmJmIjoxNzYzMTMwNDU4LCJleHAiOjE3NjMxMzQwNTgsImlhdCI6MTc2MzEzMDQ1OCwiaXNzIjoiWW91ckFwcCIsImF1ZCI6IllvdXJBcHBVc2VycyJ9.rW5CcdCAiLMhrsVyRvK6kogOBX-Zd6lBlex9XiLwqs4
 ###
 
 ### Create a new Skill
 POST {{HostAddress}}/api/{{Version}}/createskill
 Content-Type: application/json
 Accept: application/json
-
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6IkFkbWluIiwibmJmIjoxNzYzMTMwNDU4LCJleHAiOjE3NjMxMzQwNTgsImlhdCI6MTc2MzEzMDQ1OCwiaXNzIjoiWW91ckFwcCIsImF1ZCI6IllvdXJBcHBVc2VycyJ9.rW5CcdCAiLMhrsVyRvK6kogOBX-Zd6lBlex9XiLwqs4
 {
   "name": "VueJs",
   "description": "Ability to write vue js applications"

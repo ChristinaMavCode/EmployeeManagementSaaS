@@ -1,8 +1,34 @@
 
+using EmployeeManagementSaaS.Application.Dtos;
+using EmployeeManagementSaaS.Application.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 
 var logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
 builder.Logging.ClearProviders().AddSerilog(logger);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+});
+builder.Services.AddAuthorization();
 
 builder.Services.AddOpenApi();
 builder.Services.AddDefaultConfiguration();
@@ -20,6 +46,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 app.UseMiddleware<PerformanceLoggingMiddleware>();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseExceptionHandler(appError =>
 {
     appError.Run(async context =>
@@ -50,13 +80,21 @@ app.UseExceptionHandler(appError =>
 });
 
 var versionedEndpointRouteBuilder = app.NewVersionedApi();
+
+versionedEndpointRouteBuilder.MapPost("/api/v{version:apiVersion}/login", 
+    async ([FromBody] LoginDto login, [FromServices] IAuthService authService) =>
+    {
+        var token = await authService.Login(login);
+        return token is null ? Results.Unauthorized() : Results.Ok(new { Token = token });
+    }).WithName("Login").HasApiVersion(1.0);
+
 versionedEndpointRouteBuilder.MapGet("api/v{version:apiVersion}/getskills",
     async ([FromServices] IMediator mediator) =>
     {
         var result = await mediator.Send(new GetAllSkillsQuery());
         return result is not null ? Results.Ok(result) : Results.NotFound();
     })
-    .WithName("GetSkills").HasApiVersion(1.0);
+    .WithName("GetSkills").HasApiVersion(1.0).RequireAuthorization();
 
 versionedEndpointRouteBuilder.MapPost("api/v{version:apiVersion}/createskill",
     async ([FromBody] CreateSkillCommand command, [FromServices] IMediator mediator) =>
@@ -64,6 +102,6 @@ versionedEndpointRouteBuilder.MapPost("api/v{version:apiVersion}/createskill",
         var skill = await mediator.Send(command);
         return Results.Created(string.Empty, skill);
     })
-    .WithName("CreateSkill").HasApiVersion(1.0);
+    .WithName("CreateSkill").HasApiVersion(1.0).RequireAuthorization(); 
 
 app.Run();

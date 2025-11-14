@@ -1,4 +1,5 @@
 
+using EmployeeManagementSaaS.Application.Services;
 using EmployeeManagementSaaS.Infrastructure.Reposiories;
 
 namespace EmployeeManagementSaaS.Infrastructure.Configurations;
@@ -12,6 +13,7 @@ public static class DefaultConfiguration
 
         services.AddSingleton<ISkillsService, SkillsService>();
         services.AddSingleton<ISkillsRepository, SkillsRepository>();
+        services.AddSingleton<IAuthService, AuthService>();
 
         return services;
     }
