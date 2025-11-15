@@ -20,5 +20,11 @@
             bool exists = EmployeeSkillsContext.Skills.Any(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
             return Task.FromResult(exists);
         }
+
+        public Task<bool> SkillExistsAsync(string skillID)
+        {
+            bool exists = EmployeeSkillsContext.Skills.Any(x => x.Id.ToString() == skillID);
+            return Task.FromResult(exists);
+        }
     }
 }

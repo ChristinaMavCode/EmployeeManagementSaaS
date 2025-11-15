@@ -17,5 +17,5 @@ public sealed class EmployeeDto
         }
     }
 
-    public List<SkillDto> Skills { get; set; }
+    public string Skills { get; set; }
 }

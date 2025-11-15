@@ -7,4 +7,6 @@ public interface ISkillsRepository
     Task<Skill?> CreateSkill(Skill request);
 
     Task<bool> SkillNameExistsAsync(string name);
+
+    Task<bool> SkillExistsAsync(string skillID);
 }

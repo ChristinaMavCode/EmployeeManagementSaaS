@@ -11,6 +11,8 @@ public static class DefaultConfiguration
         var serviceProvider = services.BuildServiceProvider();
         var configuration = serviceProvider.GetService<IConfiguration>();
 
+        services.AddSingleton<IEmployeesService, EmployeesService>();
+        services.AddSingleton<IEmployeesRepository, EmployeesRepository>();
         services.AddSingleton<ISkillsService, SkillsService>();
         services.AddSingleton<ISkillsRepository, SkillsRepository>();
         services.AddSingleton<IAuthService, AuthService>();

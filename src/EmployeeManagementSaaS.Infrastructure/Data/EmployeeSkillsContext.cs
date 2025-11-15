@@ -17,7 +17,7 @@ namespace EmployeeManagementSaaS.Infrastructure.Data
         {
             var cSharp = new Skill
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.Parse("b8763613-919e-4c70-ae05-9d6562e02541"),
                 Name = "C#",
                 Description = "Ability to write C# applications",
                 CreationAt = DateTime.Now
@@ -70,9 +70,10 @@ namespace EmployeeManagementSaaS.Infrastructure.Data
             {
                 new Employee
                 {
+                    Id = Guid.Parse("8bb6066d-07c1-4d30-baa8-950d23e3bd2e"),
                     Name = "Christina",
                     Surname = "Mavridi",
-                    Skills = new List<Skill>(){ wpf, cSharp },
+                    Skills = new List<Skill>(){ wpf, vb },
                     CreationAt = DateTime.Now
                 },
                 new Employee

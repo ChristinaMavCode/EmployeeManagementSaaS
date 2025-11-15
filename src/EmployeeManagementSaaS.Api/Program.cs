@@ -107,6 +107,22 @@ versionedEndpointRouteBuilder.MapPost("api/v{version:apiVersion}/createskill",
         var skill = await mediator.Send(command);
         return Results.Created(string.Empty, skill);
     })
-    .WithName("CreateSkill").HasApiVersion(1.0).RequireAuthorization(); 
+    .WithName("CreateSkill").HasApiVersion(1.0).RequireAuthorization();
+
+versionedEndpointRouteBuilder.MapGet("api/v{version:apiVersion}/getemployees",
+    async ([FromServices] IMediator mediator) =>
+    {
+        var result = await mediator.Send(new GetAllEmployeesQuery());
+        return result is not null ? Results.Ok(result) : Results.NotFound();
+    })
+    .WithName("GetEmployees").HasApiVersion(1.0).RequireAuthorization();
+
+versionedEndpointRouteBuilder.MapPost("api/v{version:apiVersion}/assignskilltoemployee",
+    async ([FromBody] AssignSkillToEmployeeCommand command, [FromServices] IMediator mediator) =>
+    {
+        var skill = await mediator.Send(command);
+        return Results.Created(string.Empty, skill);
+    })
+    .WithName("AssignSkillToEmployee").HasApiVersion(1.0).RequireAuthorization();
 
 app.Run();

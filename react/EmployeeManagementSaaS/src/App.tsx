@@ -1,43 +1,76 @@
 import { useEffect, useState } from "react";
-import type { Skill } from "./types";
-import { login, fetchItems, addSkill } from "./api";
+import type { Skill, Employee } from "./types";
+import {
+  login,
+  fetchItems as fetchSkills,
+  addSkill,
+  fetchEmployees,
+  assignSkillToEmployee,
+} from "./api";
 
 export default function App() {
+  // --- Auth ---
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("token")
   );
-  const [items, setItems] = useState<Skill[]>([]);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  // --- Tabs ---
+  const [activeTab, setActiveTab] = useState<"employees" | "skills">(
+    "employees"
+  );
 
-  // New skill fields
-  const [newName, setNewName] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-  const [adding, setAdding] = useState(false);
+  // --- Skills state ---
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [skillsLoading, setSkillsLoading] = useState(false);
+  const [skillsError, setSkillsError] = useState<string | null>(null);
+  const [newSkillName, setNewSkillName] = useState("");
+  const [newSkillDesc, setNewSkillDesc] = useState("");
+  const [addingSkill, setAddingSkill] = useState(false);
 
-  // Fetch items whenever token changes
+  // --- Employees state ---
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [employeesLoading, setEmployeesLoading] = useState(false);
+  const [employeesError, setEmployeesError] = useState<string | null>(null);
+
+  // --- Assign skill state ---
+  const [selectedSkill, setSelectedSkill] = useState<string>("");
+  const [assigningSkill, setAssigningSkill] = useState(false);
+  const [assignError, setAssignError] = useState<string | null>(null);
+
+  // --- Employee filter by skill ---
+  const [filterSkill, setFilterSkill] = useState<string>("");
+
+  // --- Fetch skills (always) ---
   useEffect(() => {
     if (!token) return;
-
-    setLoading(true);
-    fetchItems(token)
+    setSkillsLoading(true);
+    fetchSkills(token)
       .then((data) => {
-        setItems(data);
-        setError(null);
+        setSkills(data);
+        setSkillsError(null);
       })
-      .catch((err: any) => {
-        setError(err.message);
-        if (err.message.includes("Unauthorized")) {
-          setToken(null);
-          localStorage.removeItem("token");
-        }
-      })
-      .finally(() => setLoading(false));
+      .catch((err: any) => setSkillsError(err.message))
+      .finally(() => setSkillsLoading(false));
   }, [token]);
 
+  // --- Fetch employees ---
+  useEffect(() => {
+    if (!token) return;
+    setEmployeesLoading(true);
+    fetchEmployees(token)
+      .then((data) => {
+        setEmployees(data);
+        setEmployeesError(null);
+      })
+      .catch((err: any) => setEmployeesError(err.message))
+      .finally(() => setEmployeesLoading(false));
+  }, [token]);
+
+  // --- Handlers ---
   const handleLogin = async () => {
     try {
       setLoading(true);
@@ -55,32 +88,58 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     setToken(null);
-    setItems([]);
+    setSkills([]);
+    setEmployees([]);
   };
 
-  // --- Add Skill ---
   const handleAddSkill = async () => {
-    if (!token) return;
-    if (!newName) return setError("Name is required");
-
+    if (!token || !newSkillName) return setSkillsError("Name is required");
     try {
-      setAdding(true);
+      setAddingSkill(true);
       const newSkill = await addSkill(token, {
-        name: newName,
-        description: newDescription,
+        name: newSkillName,
+        description: newSkillDesc,
       });
-      setItems([...items, newSkill]); // append new skill to table
-      setNewName("");
-      setNewDescription("");
-      setError(null);
-    } catch (err: any) {
-      setError(err.message || "Failed to add skill");
+      setSkills([...skills, newSkill]);
+      setNewSkillName("");
+      setNewSkillDesc("");
+      setSkillsError(null);
     } finally {
-      setAdding(false);
+      setAddingSkill(false);
     }
   };
 
-  // --- Render ---
+  const handleAssignSkill = async (employeeId: string) => {
+    if (!token || !selectedSkill) return;
+    try {
+      setAssigningSkill(true);
+      await assignSkillToEmployee(token, employeeId, selectedSkill);
+      const updatedEmployees = await fetchEmployees(token);
+      setEmployees(updatedEmployees);
+      setSelectedSkill("");
+      setAssignError(null);
+    } catch (err: any) {
+      setAssignError(err.message);
+    } finally {
+      setAssigningSkill(false);
+    }
+  };
+
+  // --- Filtered employees using string skills ---
+  const filteredEmployees = filterSkill
+    ? employees.filter((emp) => {
+        if (!emp.skills) return false;
+        const skillNames = emp.skills.split(",").map((s) => s.trim());
+        const selectedSkillName = skills.find(
+          (s) => s.id === filterSkill
+        )?.name;
+        return selectedSkillName
+          ? skillNames.includes(selectedSkillName)
+          : false;
+      })
+    : employees;
+
+  // --- Render login ---
   if (!token) {
     return (
       <div style={{ padding: 20, maxWidth: 400 }}>
@@ -106,63 +165,185 @@ export default function App() {
     );
   }
 
+  // --- Render main app ---
   return (
     <div style={{ padding: 20 }}>
-      <h1>Skills List</h1>
+      <h1>Employee Management SaaS</h1>
       <button onClick={handleLogout} style={{ marginBottom: 20 }}>
         Logout
       </button>
 
-      {/* Add Skill Form */}
-      <div style={{ marginBottom: 20, border: "1px solid #ccc", padding: 10 }}>
-        <h3>Add New Skill</h3>
-        <input
-          placeholder="Name"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          style={{ width: "100%", marginBottom: 8, padding: 8 }}
-        />
-        <input
-          placeholder="Description"
-          value={newDescription}
-          onChange={(e) => setNewDescription(e.target.value)}
-          style={{ width: "100%", marginBottom: 8, padding: 8 }}
-        />
-        <button onClick={handleAddSkill} style={{ width: "100%", padding: 8 }}>
-          {adding ? "Adding..." : "Add Skill"}
+      {/* Tabs */}
+      <div style={{ marginBottom: 20 }}>
+        <button
+          onClick={() => setActiveTab("employees")}
+          style={{
+            padding: 8,
+            marginRight: 8,
+            backgroundColor: activeTab === "employees" ? "#ccc" : "#fff",
+          }}
+        >
+          Employees
+        </button>
+        <button
+          onClick={() => setActiveTab("skills")}
+          style={{
+            padding: 8,
+            backgroundColor: activeTab === "skills" ? "#ccc" : "#fff",
+          }}
+        >
+          Skills
         </button>
       </div>
 
-      {loading && <div>Loading...</div>}
-      {error && <div style={{ color: "red" }}>{error}</div>}
+      {/* Employees tab */}
+      {activeTab === "employees" && (
+        <div>
+          <h2>Employees</h2>
 
-      {!loading && !error && (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={{ border: "1px solid #ccc", padding: 8 }}>ID</th>
-              <th style={{ border: "1px solid #ccc", padding: 8 }}>Name</th>
-              <th style={{ border: "1px solid #ccc", padding: 8 }}>
-                Description
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item) => (
-              <tr key={item.id}>
-                <td style={{ border: "1px solid #ccc", padding: 8 }}>
-                  {item.id}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: 8 }}>
-                  {item.name}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: 8 }}>
-                  {item.description}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          {/* Filter by skill */}
+          <div style={{ marginBottom: 10 }}>
+            <label>Filter by Skill: </label>
+            <select
+              value={filterSkill}
+              onChange={(e) => setFilterSkill(e.target.value)}
+            >
+              <option value="">All</option>
+              {skills.map((skill) => (
+                <option key={skill.id} value={skill.id}>
+                  {skill.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {employeesLoading && <div>Loading employees...</div>}
+          {employeesError && (
+            <div style={{ color: "red" }}>{employeesError}</div>
+          )}
+
+          {!employeesLoading && (
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th style={{ border: "1px solid #ccc", padding: 8 }}>ID</th>
+                  <th style={{ border: "1px solid #ccc", padding: 8 }}>
+                    Full Name
+                  </th>
+                  <th style={{ border: "1px solid #ccc", padding: 8 }}>
+                    Assigned Skills
+                  </th>
+                  <th style={{ border: "1px solid #ccc", padding: 8 }}>
+                    Assign Skill
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredEmployees.map((emp) => (
+                  <tr key={emp.id}>
+                    <td style={{ border: "1px solid #ccc", padding: 8 }}>
+                      {emp.id}
+                    </td>
+                    <td style={{ border: "1px solid #ccc", padding: 8 }}>
+                      {emp.fullName}
+                    </td>
+                    <td style={{ border: "1px solid #ccc", padding: 8 }}>
+                      {emp.skills}
+                    </td>
+                    <td style={{ border: "1px solid #ccc", padding: 8 }}>
+                      <select
+                        value={selectedSkill}
+                        onChange={(e) => setSelectedSkill(e.target.value)}
+                        style={{ marginRight: 8 }}
+                      >
+                        <option value="">--Select Skill--</option>
+                        {skills.map((skill) => (
+                          <option key={skill.id} value={skill.id}>
+                            {skill.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => handleAssignSkill(emp.id)}
+                        disabled={assigningSkill || !selectedSkill}
+                      >
+                        {assigningSkill ? "Assigning..." : "Assign"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          {assignError && (
+            <div style={{ color: "red", marginTop: 8 }}>{assignError}</div>
+          )}
+        </div>
+      )}
+
+      {/* Skills tab */}
+      {activeTab === "skills" && (
+        <div>
+          <h2>Skills</h2>
+          {/* Add Skill Form */}
+          <div
+            style={{ marginBottom: 20, border: "1px solid #ccc", padding: 10 }}
+          >
+            <h3>Add New Skill</h3>
+            <input
+              placeholder="Name"
+              value={newSkillName}
+              onChange={(e) => setNewSkillName(e.target.value)}
+              style={{ width: "100%", marginBottom: 8, padding: 8 }}
+            />
+            <input
+              placeholder="Description"
+              value={newSkillDesc}
+              onChange={(e) => setNewSkillDesc(e.target.value)}
+              style={{ width: "100%", marginBottom: 8, padding: 8 }}
+            />
+            <button
+              onClick={handleAddSkill}
+              style={{ width: "100%", padding: 8 }}
+            >
+              {addingSkill ? "Adding..." : "Add Skill"}
+            </button>
+            {skillsError && (
+              <div style={{ color: "red", marginTop: 5 }}>{skillsError}</div>
+            )}
+          </div>
+
+          {skillsLoading && <div>Loading skills...</div>}
+
+          {!skillsLoading && (
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th style={{ border: "1px solid #ccc", padding: 8 }}>ID</th>
+                  <th style={{ border: "1px solid #ccc", padding: 8 }}>Name</th>
+                  <th style={{ border: "1px solid #ccc", padding: 8 }}>
+                    Description
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {skills.map((skill) => (
+                  <tr key={skill.id}>
+                    <td style={{ border: "1px solid #ccc", padding: 8 }}>
+                      {skill.id}
+                    </td>
+                    <td style={{ border: "1px solid #ccc", padding: 8 }}>
+                      {skill.name}
+                    </td>
+                    <td style={{ border: "1px solid #ccc", padding: 8 }}>
+                      {skill.description}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       )}
     </div>
   );

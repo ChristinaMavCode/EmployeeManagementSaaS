@@ -26,3 +26,19 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6I
   "name": "VueJs",
   "description": "Ability to write vue js applications"
 }
+
+### Get all employees
+GET {{HostAddress}}/api/{{Version}}/getemployees
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6IkFkbWluIiwibmJmIjoxNzYzMjM4MjA1LCJleHAiOjE3NjMyNDE4MDUsImlhdCI6MTc2MzIzODIwNSwiaXNzIjoiWW91ckFwcCIsImF1ZCI6IllvdXJBcHBVc2VycyJ9.WUPLpnD-iyZ7VKQ3YboKuYsgCE-G0qB1C_VVjSRWoUg
+###
+
+### Assign Skill To Employee
+POST {{HostAddress}}/api/{{Version}}/assignskilltoemployee
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6IkFkbWluIiwibmJmIjoxNzYzMjM4MjA1LCJleHAiOjE3NjMyNDE4MDUsImlhdCI6MTc2MzIzODIwNSwiaXNzIjoiWW91ckFwcCIsImF1ZCI6IllvdXJBcHBVc2VycyJ9.WUPLpnD-iyZ7VKQ3YboKuYsgCE-G0qB1C_VVjSRWoUg
+{
+  "employeeid": "8bb6066d-07c1-4d30-baa8-950d23e3bd2e",
+  "skillid": "b8763613-919e-4c70-ae05-9d6562e02541"
+}

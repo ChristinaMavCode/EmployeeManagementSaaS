@@ -1,4 +1,4 @@
-import type { Skill, LoginResponse, NewSkill } from "./types";
+import type { Skill, LoginResponse, NewSkill, Employee } from "./types";
 
 const API_URL = "http://localhost:5225/api/v1";
 
@@ -58,4 +58,35 @@ export async function addSkill(token: string, skill: NewSkill): Promise<Skill> {
 
   const data = await res.json();
   return data as Skill;
+}
+
+export async function fetchEmployees(token: string): Promise<Employee[]> {
+  const res = await fetch(`${API_URL}/getemployees`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Fetch employees failed: ${res.status}`);
+  return res.json();
+}
+
+export async function assignSkillToEmployee(
+  token: string,
+  employeeID: string,
+  skillID: string
+): Promise<Employee> {
+  const res = await fetch(`${API_URL}/assignskilltoemployee`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify({ employeeID, skillID }), // ✅ wrap in an object
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Add skill to employee failed: ${res.status} - ${text}`);
+  }
+
+  const data = await res.json();
+  return data as Employee;
 }

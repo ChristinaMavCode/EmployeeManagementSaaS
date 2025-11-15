@@ -2,11 +2,11 @@
 
 public record GetAllSkillsQuery() : IRequest<IReadOnlyCollection<SkillDto>>;
 
-public class GetAllProductsQueryHandler : IRequestHandler<GetAllSkillsQuery, IReadOnlyCollection<SkillDto>>
+public class GetAllSkillsQueryHandler : IRequestHandler<GetAllSkillsQuery, IReadOnlyCollection<SkillDto>>
 {
     private readonly ISkillsService _skillsService;
 
-    public GetAllProductsQueryHandler(ISkillsService skillsService)
+    public GetAllSkillsQueryHandler(ISkillsService skillsService)
     {
         _skillsService = skillsService;
     }
