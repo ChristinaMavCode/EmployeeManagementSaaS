@@ -1,10 +1,4 @@
 
-using EmployeeManagementSaaS.Application.Dtos;
-using EmployeeManagementSaaS.Application.Interfaces;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-
 var builder = WebApplication.CreateBuilder(args);
 
 var logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
@@ -40,6 +34,16 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddValidatorsFromAssemblyContaining<CreateSkillCommandValidator>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
@@ -49,6 +53,7 @@ app.UseMiddleware<PerformanceLoggingMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseCors();
 
 app.UseExceptionHandler(appError =>
 {

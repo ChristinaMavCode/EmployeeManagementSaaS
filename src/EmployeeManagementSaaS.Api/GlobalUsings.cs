@@ -13,3 +13,8 @@ global using EmployeeManagementSaaS.Application.Validators;
 global using FluentValidation;
 global using Microsoft.AspNetCore.Diagnostics;
 global using AutoMapper;
+global using EmployeeManagementSaaS.Application.Dtos;
+global using EmployeeManagementSaaS.Application.Interfaces;
+global using Microsoft.AspNetCore.Authentication.JwtBearer;
+global using Microsoft.IdentityModel.Tokens;
+global using System.Text;

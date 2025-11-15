@@ -14,7 +14,7 @@ Accept: application/json
 ### Get all skills
 GET {{HostAddress}}/api/{{Version}}/getskills
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6IkFkbWluIiwibmJmIjoxNzYzMTMwNDU4LCJleHAiOjE3NjMxMzQwNTgsImlhdCI6MTc2MzEzMDQ1OCwiaXNzIjoiWW91ckFwcCIsImF1ZCI6IllvdXJBcHBVc2VycyJ9.rW5CcdCAiLMhrsVyRvK6kogOBX-Zd6lBlex9XiLwqs4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6IkFkbWluIiwibmJmIjoxNzYzMjI5NTI0LCJleHAiOjE3NjMyMzMxMjQsImlhdCI6MTc2MzIyOTUyNCwiaXNzIjoiWW91ckFwcCIsImF1ZCI6IllvdXJBcHBVc2VycyJ9.8bTWl_ybbYQ7SOcpsdUJI-FEgXKjlLrpoI_o63hwI5s
 ###
 
 ### Create a new Skill
