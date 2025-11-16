@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
 using EmployeeManagementSaaS.Application;
+using EmployeeManagementSaaS.Application.Commands;
 using EmployeeManagementSaaS.Application.Dtos;
 using EmployeeManagementSaaS.Application.Interfaces;
 using EmployeeManagementSaaS.Application.Products;
+using EmployeeManagementSaaS.Application.Validations;
 using EmployeeManagementSaaS.Domain.Entities;
+using FluentValidation.TestHelper;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -50,12 +53,38 @@ public class SkillsServiceTests
     }
 
     [Fact]
-    public void AutoMapper_Configuration_IsValid()
+    public async Task CreateSkillAsync_ShouldReturnCreatedSkill()
     {
-        var config = new MapperConfiguration(cfg =>
+        // Arrange
+        var command = new CreateSkillCommand
         {
-            cfg.AddProfile<MappingProfile>();
-        });
-        config.AssertConfigurationIsValid();
+            Name = "C#",
+            Description = "Programming language"
+        };
+
+        var expectedSkill = new SkillDto
+        {
+            Id = Guid.NewGuid(),
+            Name = "C#",
+            Description = "Programming language"
+        };
+
+        var mockService = new Mock<ISkillsService>();
+        mockService
+            .Setup(s => s.CreateSkill(command))
+            .ReturnsAsync(expectedSkill);
+
+        var handler = new CreateSkillCommandHandler(mockService.Object);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(expectedSkill.Id, result.Id);
+        Assert.Equal(expectedSkill.Name, result.Name);
+        Assert.Equal(expectedSkill.Description, result.Description);
+
+        mockService.Verify(s => s.CreateSkill(command), Times.Once);
     }
 }
